@@ -73,7 +73,7 @@ def create_calendar(canvas, rect, datetime_obj, first_weekday=calendar.SUNDAY):
     # set up constants
     font = Font('Helvetica', min(rect.width, rect.height) * 0.028)
     rows = len(cal)
-    cellsize = Size(rect.width // 7, rect.height // rows)
+    cellsize = Size(rect.width / 7, rect.height / rows)
 
     with save_state(canvas):
         canvas.setFont(*font)
