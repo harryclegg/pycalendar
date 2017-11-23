@@ -120,7 +120,7 @@ def draw_cell(canvas, day, rect, font):
                       text_y + (margin.height * 0.1),
                       ordinal_str)
 
-def generate_pdf(datetime_obj, outfile, size):
+def generate_pdf(datetime_obj, outfile, size, first_weekday=calendar.SUNDAY):
     """Helper to apply create_calendar to save a ready-to-print file to disk.
 
     @param datetime_obj: A Python C{datetime} object specifying the month
@@ -138,7 +138,7 @@ def generate_pdf(datetime_obj, outfile, size):
 
     create_calendar(canvas,
                     Geom(wmar, hmar, size.width, size.height),
-                    datetime_obj).save()
+                    datetime_obj, first_weekday).save()
 
 if __name__ == "__main__":
     generate_pdf(datetime.datetime.now(), 'calendar.pdf',
