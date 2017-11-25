@@ -28,7 +28,7 @@ TODO:
 from __future__ import (absolute_import, division, print_function,
                         with_statement, unicode_literals)
 
-__author__ = "Bill Mill; Stephan Sokolow (deitarion/SSokolow); Bill Mill"
+__author__ = "Bill Mill; Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "CC0-1.0"  # https://creativecommons.org/publicdomain/zero/1.0/
 
 import calendar, collections, datetime
