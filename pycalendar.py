@@ -37,6 +37,7 @@ from contextlib import contextmanager
 from reportlab.lib import pagesizes
 from reportlab.pdfgen.canvas import Canvas
 
+# Supporting languages like French should be as simple as editing this
 ORDINALS = {
     1: 'st', 2: 'nd', 3: 'rd',
     21: 'st', 22: 'nd', 23: 'rd',
@@ -55,16 +56,21 @@ def save_state(canvas):
     yield
     canvas.restoreState()
 
-def create_calendar(canvas, rect, datetime_obj, first_weekday=calendar.SUNDAY):
+def add_calendar_page(canvas, rect, datetime_obj, cell_cb,
+                      first_weekday=calendar.SUNDAY):
     """Create a one-month pdf calendar, and return the canvas
 
     @param rect: A C{Geom} or 4-item iterable of floats defining the shape of
         the calendar in points with any margins already applied.
     @param datetime_obj: A Python C{datetime} object specifying the month
         the calendar should represent.
+    @param cell_cb: A callback taking (canvas, day, rect, font) as arguments
+        which will be called to render each cell.
+        (C{day} will be 0 for empty cells.)
 
     @type canvas: C{reportlab.pdfgen.canvas.Canvas}
     @type rect: C{Geom}
+    @type cell_cb: C{function(Canvas, int, Geom, Font)}
     """
     calendar.setfirstweekday(first_weekday)
     cal = calendar.monthcalendar(datetime_obj.year, datetime_obj.month)
@@ -75,13 +81,14 @@ def create_calendar(canvas, rect, datetime_obj, first_weekday=calendar.SUNDAY):
     rows = len(cal)
     cellsize = Size(rect.width / 7, rect.height / rows)
 
-    with save_state(canvas):
-        canvas.setFont(*font)
+    # now fill in the day numbers and any data
+    for row, week in enumerate(cal):
+        for col, day in enumerate(week):
+            # Give each call to
+            with save_state(canvas):
+                canvas.setFont(*font)
 
-        # now fill in the day numbers and any data
-        for row, week in enumerate(cal):
-            for col, day in enumerate(week):
-                draw_cell(canvas, day, Geom(
+                cell_cb(canvas, day, Geom(
                     x=rect.x + (cellsize.width * col),
                     y=rect.y + ((rows - row) * cellsize.height),
                     width=cellsize.width, height=cellsize.height), font)
@@ -93,9 +100,11 @@ def create_calendar(canvas, rect, datetime_obj, first_weekday=calendar.SUNDAY):
 def draw_cell(canvas, day, rect, font):
     """Draw a calendar cell with the given characteristics
 
-    @param rect: An (x, y, width, height) tuple defining the shape of the cell
-        in points.
-    @type rect: (float, float, float, float)
+    @param day: The date in the range 0 to 31.
+    @param rect: A Geom(x, y, width, height) tuple defining the shape of the
+        cell in points.
+    @type rect: C{Geom}
+    @type font: C{Font}
     """
     # Skip drawing cells that don't correspond to a date in this month
     if not day:
@@ -121,7 +130,7 @@ def draw_cell(canvas, day, rect, font):
                       ordinal_str)
 
 def generate_pdf(datetime_obj, outfile, size, first_weekday=calendar.SUNDAY):
-    """Helper to apply create_calendar to save a ready-to-print file to disk.
+    """Helper to apply add_calendar_page to save a ready-to-print file to disk.
 
     @param datetime_obj: A Python C{datetime} object specifying the month
         the calendar should represent.
@@ -136,9 +145,9 @@ def generate_pdf(datetime_obj, outfile, size, first_weekday=calendar.SUNDAY):
     wmar, hmar = size.width / 50, size.height / 50
     size = Size(size.width - (2 * wmar), size.height - (2 * hmar))
 
-    create_calendar(canvas,
-                    Geom(wmar, hmar, size.width, size.height),
-                    datetime_obj, first_weekday).save()
+    add_calendar_page(canvas,
+                      Geom(wmar, hmar, size.width, size.height),
+                      datetime_obj, draw_cell, first_weekday).save()
 
 if __name__ == "__main__":
     generate_pdf(datetime.datetime.now(), 'calendar.pdf',
