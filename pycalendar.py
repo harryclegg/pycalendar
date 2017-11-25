@@ -77,34 +77,52 @@ def add_calendar_page(canvas, rect, datetime_obj, cell_cb,
     rect = Geom(*rect)
 
     # set up constants
-    font = Font('Helvetica', min(rect.width, rect.height) * 0.028)
+    scale_factor = min(rect.width, rect.height)
+    line_width = scale_factor * 0.0025
+    font = Font('Helvetica', scale_factor * 0.028)
     rows = len(cal)
+
+    # Leave room for the stroke width around the outermost cells
+    rect = Geom(rect.x + line_width,
+                rect.y + line_width,
+                rect.width - (line_width * 2),
+                rect.height - (line_width * 2))
     cellsize = Size(rect.width / 7, rect.height / rows)
 
     # now fill in the day numbers and any data
     for row, week in enumerate(cal):
         for col, day in enumerate(week):
-            # Give each call to
+            # Give each call to cell_cb a known canvas state
             with save_state(canvas):
+
+                # Set reasonable default drawing parameters
                 canvas.setFont(*font)
+                canvas.setLineWidth(line_width)
+
 
                 cell_cb(canvas, day, Geom(
                     x=rect.x + (cellsize.width * col),
                     y=rect.y + ((rows - row) * cellsize.height),
-                    width=cellsize.width, height=cellsize.height), font)
+                    width=cellsize.width, height=cellsize.height),
+                    font, scale_factor)
 
     # finish this page
     canvas.showPage()
     return canvas
 
-def draw_cell(canvas, day, rect, font):
+def draw_cell(canvas, day, rect, font, scale_factor):
     """Draw a calendar cell with the given characteristics
 
     @param day: The date in the range 0 to 31.
     @param rect: A Geom(x, y, width, height) tuple defining the shape of the
         cell in points.
+    @param scale_factor: A number which can be used to calculate sizes which
+        will remain proportional to the size of the entire calendar.
+        (Currently the length of the shortest side of the full calendar)
+
     @type rect: C{Geom}
     @type font: C{Font}
+    @type scale_factor: C{float}
     """
     # Skip drawing cells that don't correspond to a date in this month
     if not day:
