@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """Generate a printable calendar in PDF format, suitable for embedding
 into another document.
 
@@ -38,6 +36,7 @@ __license__ = "CC0-1.0"  # https://creativecommons.org/publicdomain/zero/1.0/
 import calendar, collections, datetime
 from contextlib import contextmanager
 import colorsys
+import numpy as np
 
 from reportlab.lib.units import mm
 from reportlab.pdfgen.canvas import Canvas
@@ -109,12 +108,12 @@ def add_calendar_page(canvas, colours, rect, datetime_obj, cell_cb,
     # print month name
     with save_state(canvas):
 
-        month_str = calendar.month_name[datetime_obj.month]
+        month_str = calendar.month_name[datetime_obj.month] + ' ' + str(datetime_obj.year)
 
         cell_cb(canvas, month_str, Geom(
             x=rect.x,
             y=rect.y + ((rows) * cellsize.height),
-            width=cellsize.width * 7, height=cellsize.height, bg=colours['medium'], col=colours['white']),
+            width=cellsize.width * 7, height=cellsize.height, bg=colours['titleBackground'], col=colours['titleText']),
             monthFont, scale_factor)
 
     # print day of week headers
@@ -124,10 +123,11 @@ def add_calendar_page(canvas, colours, rect, datetime_obj, cell_cb,
             cell_cb(canvas, day, Geom(
                 x=rect.x + (cellsize.width * col),
                 y=rect.y + ((rows-1) * cellsize.height),
-                width=cellsize.width, height=cellsize.height, bg=colours['background'], col=colours['dark']),
+                width=cellsize.width, height=cellsize.height, bg=colours['cellBackground'], col=colours['cellText']),
                 dayFont, scale_factor)
 
     # now fill in the day numbers and any data
+    lastRow = 0
     for row, week in enumerate(cal):
         for col, day in enumerate(week):
             with save_state(canvas):
@@ -136,7 +136,19 @@ def add_calendar_page(canvas, colours, rect, datetime_obj, cell_cb,
                     x=rect.x + (cellsize.width * col),
                     y=rect.y + ((rows - row - 2) * cellsize.height),
                     width=cellsize.width, height=cellsize.height,
-                    bg=colours['background'], col=colours['black']),
+                    bg=colours['cellBackground'], col=colours['cellText']),
+                    mainFont, scale_factor)
+        lastRow = row
+
+    if lastRow < 5:
+        row = 5
+        for col, day in enumerate(week):
+            with save_state(canvas):
+                cell_cb(canvas, '', Geom(
+                    x=rect.x + (cellsize.width * col),
+                    y=rect.y + ((rows - row - 2) * cellsize.height),
+                    width=cellsize.width, height=cellsize.height,
+                    bg=colours['cellBackground'], col=colours['cellText']),
                     mainFont, scale_factor)
 
     # finish this page
@@ -148,12 +160,10 @@ def generate_colours(hue):
     @param hue: colour hue value, 0-1.
     """
     colours = dict()
-    colours['white'] = colorsys.hls_to_rgb(hue, 1, 1)
-    colours['black'] = colorsys.hls_to_rgb(hue, 0, 1)
-    colours['dark'] = colorsys.hls_to_rgb(hue, 0.15, 1)
-    colours['medium'] = colorsys.hls_to_rgb(hue, 0.30, 1)
-    colours['light'] = colorsys.hls_to_rgb(hue, 0.40, 1)
-    colours['background'] = colorsys.hls_to_rgb(hue, 0.80, 1)
+    colours['cellBackground'] = colorsys.hls_to_rgb(hue, 0.90, 1)
+    colours['cellText'] = colorsys.hls_to_rgb(hue, 0.15, 1)
+    colours['titleBackground'] = colorsys.hls_to_rgb(hue, 0.15, 1)
+    colours['titleText'] = colorsys.hls_to_rgb(hue, 0.90, 1)
 
     return colours
 
@@ -252,7 +262,7 @@ if __name__ == "__main__":
     page_size = (130*mm, 90*mm)
 
     # select a hue value float 0-1, or integer 0-360
-    calendar_hue = [244, 124, 199, 275, 10, 52, 244, 124, 199, 275, 10, 52]
+    calendar_hue = np.linspace(120, 330, 12)
 
     # create the pdfs
     generate_pdf(upcoming_year, page_size, hue=calendar_hue)
