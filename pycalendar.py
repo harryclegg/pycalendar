@@ -1,7 +1,7 @@
 """Generate a printable calendar in PDF format, suitable for embedding
 into another document.
 
-Tested with Python 2.7.
+Tested with Python 3.8.
 
 Dependencies:
 - Python
@@ -23,7 +23,6 @@ TODO:
 - Implement diagonal/overlapped cells for months which touch six weeks to avoid
   wasting space on six rows.
 - Reimplement ordinals
-- Python 3
 - Make options such as font more cusomisable and stored in a better data structure.
 """
 
