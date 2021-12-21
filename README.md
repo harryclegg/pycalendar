@@ -9,6 +9,8 @@ Install dependencies:
 numpy
 Pillow
 reportlab
+frontend
+pymupdf
 ```
 
 Then run the script using python 3.8.

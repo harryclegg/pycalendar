@@ -267,7 +267,20 @@ def draw_cell(canvas, day, rect, font, scale_factor):
     canvas.drawCentredString(text_x, text_y, day)
 
 
-def generate_pdf(year_date, size, hue=0, first_weekday=calendar.MONDAY):
+def merge_pdf(output_file, input_files):
+    import fitz
+    import os
+
+    result = fitz.open()
+    for input_file in input_files:
+        with fitz.open(input_file) as mfile:
+            result.insert_pdf(mfile)
+        os.remove(input_file)
+
+    result.save(output_file)
+
+
+def generate_pdf(year_date, size, hue=0, first_weekday=calendar.MONDAY, separate_months=False):
     """
     Generate calendar PDF pages for every month of the year.
 
@@ -277,6 +290,9 @@ def generate_pdf(year_date, size, hue=0, first_weekday=calendar.MONDAY):
     @param first_weekday: when to start the week.
 
     """
+
+    import os
+
     page_size = Size(*size)
 
     # margins for page
@@ -284,6 +300,8 @@ def generate_pdf(year_date, size, hue=0, first_weekday=calendar.MONDAY):
     size = Size(page_size.width - (2 * wmar), page_size.height - (2 * hmar))
 
     year = year_date.year
+
+    file_names = []
 
     for month in range(0, 12):
         if len(hue) == 12:
@@ -298,7 +316,12 @@ def generate_pdf(year_date, size, hue=0, first_weekday=calendar.MONDAY):
 
         month_colours = generate_colours(month_hue)
 
-        file_name = "cal-" + str(year) + "-" + str(month + 1) + ".pdf"
+        dirPath = "output/"
+        if not os.path.isdir(dirPath):
+            os.mkdir(dirPath)
+
+        file_name = dirPath + str(year) + "-" + str(month + 1) + ".pdf"
+        file_names.append(file_name)
         canvas = Canvas(file_name, page_size)
 
         current_month = datetime.date(year, month + 1, 1)
@@ -310,6 +333,10 @@ def generate_pdf(year_date, size, hue=0, first_weekday=calendar.MONDAY):
             draw_cell,
             first_weekday,
         ).save()
+
+    if not separate_months:
+        merged_name = dirPath + str(year) + ".pdf"
+        merge_pdf(merged_name, file_names)
 
 
 if __name__ == "__main__":
