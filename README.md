@@ -6,11 +6,7 @@ Generate a PDF of a monthly calendar for printing.
 Install dependencies:
 
 ```
-numpy
-Pillow
-reportlab
-frontend
-pymupdf
+pip install -r requirements.txt
 ```
 
 Then run the script using python 3.8.
