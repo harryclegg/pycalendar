@@ -1,5 +1,0 @@
-numpy
-Pillow
-reportlab
-frontend
-pymupdf

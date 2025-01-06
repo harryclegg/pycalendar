@@ -131,3 +131,5 @@ dmypy.json
 *.pdf
 .vscode/
 output/
+
+.DS_Store

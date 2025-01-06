@@ -349,7 +349,9 @@ if __name__ == "__main__":
     page_size = (130 * mm, 90 * mm)
 
     # select a hue value float 0-1, or integer 0-360
-    calendar_hue = np.linspace(120, 330, 12)
+    calendar_hue = np.linspace(0, 330, 12)
+    np.random.shuffle(calendar_hue)
+    print(calendar_hue)
 
     # create the pdfs
     generate_pdf(upcoming_year, page_size, hue=calendar_hue)
